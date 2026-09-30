@@ -2,10 +2,17 @@ import { isOverdue, Priority, Task } from './task';
 
 const priorityOrder: Record<Priority, number> = { high: 0, medium: 1, low: 2 };
 
-// TODO: save tasks to a file so they survive a restart
 export class TaskList {
   private tasks: Task[] = [];
   private nextId = 1;
+
+  // rebuild a list from saved tasks, new ids carry on after the highest one
+  static fromTasks(tasks: Task[]): TaskList {
+    const list = new TaskList();
+    list.tasks = tasks.map((t) => ({ ...t }));
+    list.nextId = tasks.reduce((max, t) => Math.max(max, t.id), 0) + 1;
+    return list;
+  }
 
   add(title: string, priority: Priority = 'medium', dueDate?: Date): Task {
     const trimmed = title.trim();
@@ -33,6 +40,10 @@ export class TaskList {
       throw new Error(`No task with id ${id}`);
     }
     return task;
+  }
+
+  all(): Task[] {
+    return this.tasks.map((t) => ({ ...t }));
   }
 
   pending(): Task[] {
