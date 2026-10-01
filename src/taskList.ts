@@ -9,18 +9,18 @@ export class TaskList {
   // rebuild a list from saved tasks, new ids carry on after the highest one
   static fromTasks(tasks: Task[]): TaskList {
     const list = new TaskList();
-    list.tasks = tasks.map((t) => ({ ...t }));
+    list.tasks = tasks.map((t) => ({ ...t, tags: [...t.tags] }));
     list.nextId = tasks.reduce((max, t) => Math.max(max, t.id), 0) + 1;
     return list;
   }
 
-  add(title: string, priority: Priority = 'medium', dueDate?: Date): Task {
+  add(title: string, priority: Priority = 'medium', dueDate?: Date, tags: string[] = []): Task {
     const trimmed = title.trim();
     if (!trimmed) {
       throw new Error('Task title cannot be empty');
     }
 
-    const task: Task = { id: this.nextId++, title: trimmed, priority, done: false, dueDate };
+    const task: Task = { id: this.nextId++, title: trimmed, priority, done: false, dueDate, tags: normaliseTags(tags) };
     this.tasks.push(task);
     return task;
   }
@@ -42,8 +42,18 @@ export class TaskList {
     return task;
   }
 
+  tag(id: number, tag: string): void {
+    const task = this.find(id);
+    task.tags = normaliseTags([...task.tags, tag]);
+  }
+
   all(): Task[] {
-    return this.tasks.map((t) => ({ ...t }));
+    return this.tasks.map((t) => ({ ...t, tags: [...t.tags] }));
+  }
+
+  withTag(tag: string): Task[] {
+    const wanted = tag.trim().toLowerCase();
+    return this.pending().filter((t) => t.tags.includes(wanted));
   }
 
   pending(): Task[] {
@@ -62,4 +72,10 @@ export class TaskList {
     const doneCount = this.tasks.length - this.pending().length;
     return `${doneCount}/${this.tasks.length} tasks done`;
   }
+}
+
+// lower case, no blanks, no repeats
+function normaliseTags(tags: string[]): string[] {
+  const cleaned = tags.map((t) => t.trim().toLowerCase()).filter((t) => t !== '');
+  return [...new Set(cleaned)];
 }

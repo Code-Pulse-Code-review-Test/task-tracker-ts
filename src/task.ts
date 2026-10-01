@@ -6,6 +6,7 @@ export interface Task {
   priority: Priority;
   done: boolean;
   dueDate?: Date;
+  tags: string[];
 }
 
 export function isOverdue(task: Task, today: Date = new Date()): boolean {
