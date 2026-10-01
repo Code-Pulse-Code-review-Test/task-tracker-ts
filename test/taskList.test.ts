@@ -37,4 +37,15 @@ describe('TaskList', () => {
     list.complete(first.id);
     expect(list.summary()).toBe('1/2 tasks done');
   });
+
+  it('cleans up tags and filters pending tasks by tag', () => {
+    const list = new TaskList();
+    const a = list.add('a', 'low', undefined, [' Uni ', 'uni', '']);
+    list.add('b', 'low', undefined, ['home']);
+    list.tag(a.id, 'Exam');
+    expect(list.find(a.id).tags).toEqual(['uni', 'exam']);
+    expect(list.withTag('UNI').map((t) => t.title)).toEqual(['a']);
+    list.complete(a.id);
+    expect(list.withTag('uni')).toHaveLength(0);
+  });
 });

@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from 'fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -37,5 +37,15 @@ describe('storage', () => {
 
     const loaded = loadTasks(file);
     expect(loaded.add('three').id).toBe(3);
+  });
+
+  it('keeps tags and loads old files without them', () => {
+    const list = new TaskList();
+    list.add('tagged', 'low', undefined, ['uni']);
+    saveTasks(list, file);
+    expect(loadTasks(file).find(1).tags).toEqual(['uni']);
+
+    writeFileSync(file, JSON.stringify([{ id: 1, title: 'old', priority: 'low', done: false }]));
+    expect(loadTasks(file).find(1).tags).toEqual([]);
   });
 });
